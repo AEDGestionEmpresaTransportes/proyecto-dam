@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import useConductores from "../../hooks/useConductores";
 import FormularioConductor from "./conductor/FormularioConductor";
 import "../TablaEstilosMejoradov2.css";
 
@@ -13,41 +14,18 @@ const CONDUCTOR_INICIAL = {
 };
 
 export default function ConductoresTab() {
-  const [conductores, setConductores] = useState([]); // Lista de conductores cargados desde el backend
+  // Importa el hook de la lógica de lectura de conductores
+  const { conductores, setConductores, isLoading, error, fetchConductores } =
+    useConductores();
+
   const [selectedDni, setSelectedDni] = useState(null); // DNI Seleccionado en la tabla
   //const [showForm, setShowForm] = useState(false); // Se muestra el formulario
   const [muestraFormulario, setMuestraFormulario] = useState(false); // Se muestra el formulario
   //const [formMode, setFormMode] = useState("crear"); // Modo 'crear' o 'editar'
   const [modoFormulario, setModoFormulario] = useState("crear"); // Modo 'crear' o 'editar'
   const [conductor, setConductor] = useState(CONDUCTOR_INICIAL); // Datos del conductor
-  const [isLoading, setIsLoading] = useState(true); // Esta cargando?
   const [submitting, setSubmitting] = useState(false); // Está enviando?
-  const [error, setError] = useState(null); // Mensaje de error si algo falla
   const [successMessage, setSuccessMessage] = useState(null); // Mensaje de éxito
-
-  // --------------- READ ---------------
-  // CARGA DE DATOS AL MONTAR EL COMPONENTE
-
-  useEffect(() => {
-    fetchConductores(); // Llama a la función que obtiene los datos desde la API
-  }, []);
-
-  // Cargar conductores => Llama a la API para obtener el conductor
-  const fetchConductores = async () => {
-    try {
-      setIsLoading(true); // Activa el estado para mostrar mensaje de cargando...
-      setError(null); // Limpia los errores antes de una nueva petición
-      const respuesta = await fetch("http://localhost:8080/api/conductores"); // Llamada a la API REST => petición GET
-      if (!respuesta.ok) throw new Error("Error al cargar conductores"); // Si no es Ok => ERROR
-      const data = await respuesta.json(); // Respuesta en formato JSON
-      setConductores(data); // Actualiza el estado con la lista de conductores recibida
-    } catch (err) {
-      setError(err.message);
-      console.error("Error:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // VALIDACIONES DEL DNI Y TELEFONO
   // Validar DNI español (formato básico)
