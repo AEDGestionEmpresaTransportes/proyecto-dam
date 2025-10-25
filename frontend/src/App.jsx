@@ -1,6 +1,6 @@
 import React from "react";
 import TabsContainer from "./components/TabsContainer";
-import "./App.css"; // Importa el CSS
+//import "./App.css"; // Importa el CSS
 
 function App() {
   return (

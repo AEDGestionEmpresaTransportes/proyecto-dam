@@ -5,7 +5,7 @@ import ConductoresTab from "./tabs/ConductoresTab";
 //import MunicipiosTab from './MunicipiosTab';
 //import PaquetesTab from './PaquetesTab';
 //import ConduceTab from './ConduceTab';
-import "./TabsContainerv2.css"; // Importa el CSS
+//import "./TabsContainerv2.css"; // Importa el CSS
 
 export default function TabsContainer() {
   const [tab, setTab] = useState("conductores");

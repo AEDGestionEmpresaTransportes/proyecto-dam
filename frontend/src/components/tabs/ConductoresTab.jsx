@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
-import useConductores from "../../hooks/useConductores";
+import VistaConductores from "./conductor/VistaConductor";
 import FormularioConductor from "./conductor/FormularioConductor";
-import "../TablaEstilosMejoradov2.css";
+import BotonesCRUD from "../botonesCRUD/BotonesCRUD";
+
+import useConductores from "../../hooks/useConductores";
+import { validarDNI, validarTelefono } from "../../utils/validaciones";
+
+//import "../TablaEstilosMejoradov2.css";
 
 // Estado inicial del formulario
 const CONDUCTOR_INICIAL = {
@@ -19,27 +24,11 @@ export default function ConductoresTab() {
     useConductores();
 
   const [selectedDni, setSelectedDni] = useState(null); // DNI Seleccionado en la tabla
-  //const [showForm, setShowForm] = useState(false); // Se muestra el formulario
   const [muestraFormulario, setMuestraFormulario] = useState(false); // Se muestra el formulario
-  //const [formMode, setFormMode] = useState("crear"); // Modo 'crear' o 'editar'
   const [modoFormulario, setModoFormulario] = useState("crear"); // Modo 'crear' o 'editar'
   const [conductor, setConductor] = useState(CONDUCTOR_INICIAL); // Datos del conductor
   const [submitting, setSubmitting] = useState(false); // Está enviando?
   const [successMessage, setSuccessMessage] = useState(null); // Mensaje de éxito
-
-  // VALIDACIONES DEL DNI Y TELEFONO
-  // Validar DNI español (formato básico)
-  const validarDNI = (dni) => {
-    const dniRegex = /^[0-9]{8}[A-Z]$/;
-    return dniRegex.test(dni);
-  };
-
-  // Validar teléfono
-  const validarTelefono = (telefono) => {
-    if (!telefono) return true; // Campo opcional
-    const telefonoRegex = /^[6-9][0-9]{8}$/;
-    return telefonoRegex.test(telefono);
-  };
 
   // --------------- CREATE ---------------
   // Abrir formulario para crear un nuevo conductor
@@ -212,18 +201,19 @@ export default function ConductoresTab() {
         <div className="mensaje-exito">✓ {successMessage}</div>
       )}
 
-      {/* Contenedor de acciones CRUD */}
-      <div className="tabla-actions">
-        <button onClick={handleCreate} disabled={submitting}>
-          ➕ Crear
-        </button>
-        <button onClick={handleEdit} disabled={!selectedDni || submitting}>
-          ✏️ Editar
-        </button>
-        <button onClick={handleDelete} disabled={!selectedDni || submitting}>
-          🗑️ Eliminar
-        </button>
-      </div>
+      <BotonesCRUD
+        onCreate={handleCreate}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        selectedDni={selectedDni}
+        submitting={submitting}
+      />
+
+      <VistaConductores
+        conductores={conductores}
+        selectedDni={selectedDni}
+        setSelectedDni={setSelectedDni}
+      />
 
       {muestraFormulario && (
         <FormularioConductor
@@ -235,146 +225,6 @@ export default function ConductoresTab() {
           handleCancel={handleCancel}
         />
       )}
-
-      {/*}
-      {muestraFormulario && (
-        <form className="formulario" onSubmit={handleSubmit}>
-          <h3>
-            {modoFormulario === "crear"
-              ? "Nuevo Conductor"
-              : "Editar Conductor"}
-          </h3>
-
-          <div>
-            <label htmlFor="dni">DNI *</label>
-            <input
-              id="dni"
-              name="dni"
-              placeholder="12345678A"
-              value={conductor.dni}
-              onChange={handleChange}
-              disabled={modoFormulario === "editar"}
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="nombre">Nombre *</label>
-            <input
-              id="nombre"
-              name="nombre"
-              placeholder="Nombre completo"
-              value={conductor.nombre}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="telefono">Teléfono</label>
-            <input
-              id="telefono"
-              name="telefono"
-              placeholder="612345678"
-              value={conductor.telefono}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="direccion">Dirección</label>
-            <input
-              id="direccion"
-              name="direccion"
-              placeholder="Calle, número, ciudad"
-              value={conductor.direccion}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="salario">Salario</label>
-            <input
-              id="salario"
-              name="salario"
-              placeholder="1500.00"
-              type="number"
-              step="0.01"
-              min="0"
-              value={conductor.salario}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="municipio">Municipio</label>
-            <input
-              id="municipio"
-              name="municipio"
-              placeholder="Nombre del municipio"
-              value={conductor.municipio}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="formulario-botones">
-            <button type="submit" disabled={submitting}>
-              {submitting ? "Guardando..." : "Guardar"}
-            </button>
-            <button type="button" onClick={handleCancel} disabled={submitting}>
-              Cancelar
-            </button>
-          </div>
-        </form>
-      )}
-        */}
-
-      <table className="tabla-estilizada">
-        <thead>
-          <tr>
-            <th>DNI</th>
-            <th>Nombre</th>
-            <th>Teléfono</th>
-            <th>Dirección</th>
-            <th>Salario</th>
-            <th>Municipio</th>
-          </tr>
-        </thead>
-        <tbody>
-          {conductores.length === 0 ? (
-            <tr>
-              <td colSpan="6">No hay conductores registrados</td>
-            </tr>
-          ) : (
-            conductores.map((c) => (
-              <tr
-                key={c.dni}
-                onClick={() => setSelectedDni(c.dni)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    setSelectedDni(c.dni);
-                  }
-                }}
-                tabIndex={0}
-                role="button"
-                aria-selected={selectedDni === c.dni}
-                className={`fila-conductor${
-                  selectedDni === c.dni ? " seleccionada" : ""
-                }`}
-              >
-                <td>{c.dni}</td>
-                <td>{c.nombre}</td>
-                <td>{c.telefono || "-"}</td>
-                <td>{c.direccion || "-"}</td>
-                <td>
-                  {c.salario ? `${parseFloat(c.salario).toFixed(2)} €` : "-"}
-                </td>
-                <td>{c.municipio?.nombre || c.municipio || "-"}</td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
     </div>
   );
 }
