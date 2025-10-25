@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100%;
@@ -11,8 +12,11 @@ html, body {
   flex-direction: column;
   min-height: 100vh;
   width: 100vw;
-  background-color: #f0f0f0;
-  overflow: auto;
+  /* background-color: #f0f0f0; */
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  border: 2px dashed red;
+  background-color: rgba(255, 0, 0, 0.05); /* fondo rojo muy suave */
 }
 
 /* Barra de navegación */
@@ -22,7 +26,7 @@ html, body {
   flex-wrap: wrap;
   gap: 10px;
   padding: 15px;
-  background-color: #4CAF50;
+  background-color: #4caf50;
 }
 
 .tabs-nav button {
@@ -54,5 +58,3 @@ html, body {
   line-height: 1.2;
   text-align: center;
 }
-
-

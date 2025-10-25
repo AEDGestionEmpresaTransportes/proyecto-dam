@@ -1,0 +1,8 @@
+.formulario {
+  max-height: 70vh;
+  margin-bottom: 2rem;
+}
+
+.formulario input {
+  color: #222;
+}
