@@ -1,3 +1,7 @@
+import { useState } from "react";
+import { validarDNI, validarTelefono } from "../../../utils/validaciones";
+import { MENSAJES } from "../../../utils/mensajes";
+
 import "./formularioConductor.css";
 
 export default function FormularioConductor({
@@ -8,8 +12,33 @@ export default function FormularioConductor({
   handleSubmit,
   handleCancel,
 }) {
+  const [errores, setErrores] = useState({});
+
+  const validarCampos = () => {
+    const nuevosErrores = {};
+
+    if (!validarDNI(conductor.dni) && modoFormulario === "crear") {
+      nuevosErrores.dni = MENSAJES.errorDNI;
+    }
+
+    if (!validarTelefono(conductor.telefono)) {
+      nuevosErrores.telefono = MENSAJES.errorTelefono;
+    }
+
+    setErrores(nuevosErrores);
+    return Object.keys(nuevosErrores).length === 0;
+  };
+
+  const handleLocalSubmit = (e) => {
+    e.preventDefault(); // evita que el formulario se envíe automáticamente
+
+    if (!validarCampos()) return; // si hay errores, no continúa
+
+    handleSubmit(e); // si todo está bien, llama al padre
+  };
+
   return (
-    <form className="formulario" onSubmit={handleSubmit}>
+    <form className="formulario" onSubmit={handleLocalSubmit}>
       <h3>
         {modoFormulario === "crear" ? "Nuevo Conductor" : "Editar Conductor"}
       </h3>
@@ -25,6 +54,7 @@ export default function FormularioConductor({
           disabled={modoFormulario === "editar"}
           required
         />
+        {errores.dni && <p className="error">{errores.dni}</p>}
       </div>
 
       <div>
@@ -48,6 +78,7 @@ export default function FormularioConductor({
           value={conductor.telefono}
           onChange={handleChange}
         />
+        {errores.telefono && <p className="error">{errores.telefono}</p>}
       </div>
 
       <div>
@@ -77,13 +108,18 @@ export default function FormularioConductor({
 
       <div>
         <label htmlFor="municipio">Municipio</label>
-        <input
-          id="municipio"
+        <select
           name="municipio"
-          placeholder="Nombre del municipio"
           value={conductor.municipio}
           onChange={handleChange}
-        />
+          required
+        >
+          <option value="">Selecciona municipio</option>
+          <option value="35004">Las Palmas de Gran Canaria</option>
+          <option value="35200">Telde</option>
+          <option value="35300">Gáldar</option>
+          <option value="35400">Valsequillo</option>
+        </select>
       </div>
 
       <div className="formulario-botones">

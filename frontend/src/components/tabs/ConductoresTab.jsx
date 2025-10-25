@@ -4,7 +4,9 @@ import FormularioConductor from "./conductor/FormularioConductor";
 import BotonesCRUD from "../botonesCRUD/BotonesCRUD";
 
 import useConductores from "../../hooks/useConductores";
-import { validarDNI, validarTelefono } from "../../utils/validaciones";
+import useSubmitConductor from "../../hooks/useSubmitConductor";
+
+import { MENSAJES } from "../../utils/mensajes";
 
 //import "../TablaEstilosMejoradov2.css";
 
@@ -24,11 +26,24 @@ export default function ConductoresTab() {
     useConductores();
 
   const [selectedDni, setSelectedDni] = useState(null); // DNI Seleccionado en la tabla
+
+  // Importa el hook de la lógica de creación de conductores
+  const {
+    submitConductor,
+    submitting,
+    successMessage,
+    error: submitError,
+  } = useSubmitConductor({
+    conductores,
+    setConductores,
+    setSelectedDni,
+  });
+
   const [muestraFormulario, setMuestraFormulario] = useState(false); // Se muestra el formulario
   const [modoFormulario, setModoFormulario] = useState("crear"); // Modo 'crear' o 'editar'
   const [conductor, setConductor] = useState(CONDUCTOR_INICIAL); // Datos del conductor
-  const [submitting, setSubmitting] = useState(false); // Está enviando?
-  const [successMessage, setSuccessMessage] = useState(null); // Mensaje de éxito
+  //const [submitting, setSubmitting] = useState(false); // Está enviando?
+  //const [successMessage, setSuccessMessage] = useState(null); // Mensaje de éxito
 
   // --------------- CREATE ---------------
   // Abrir formulario para crear un nuevo conductor
@@ -38,8 +53,8 @@ export default function ConductoresTab() {
     setMuestraFormulario(true); // Muestra formulario
 
     // Limpieza de mensajes de error y éxito anteriores
-    setError(null);
-    setSuccessMessage(null);
+    //setError(null);
+    //setSuccessMessage(null);
   };
 
   // Abrir formulario para editar
@@ -54,7 +69,7 @@ export default function ConductoresTab() {
     );
     if (!conductorSeleccionado) return;
 
-    setmodoFormulario("editar");
+    setModoFormulario("editar");
     setConductor({
       ...conductorSeleccionado,
       municipio:
@@ -63,7 +78,7 @@ export default function ConductoresTab() {
         "",
     });
     setMuestraFormulario(true);
-    setError(null);
+    //setError(null);
     setSuccessMessage(null);
   };
 
@@ -73,66 +88,12 @@ export default function ConductoresTab() {
     setConductor((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Enviar formulario
-  const handleSubmit = async (e) => {
+  // Maneja el envío del formulario
+  const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Validaciones
-    if (!validarDNI(conductor.dni) && modoFormulario === "crear") {
-      alert("DNI inválido. Formato: 12345678A");
-      return;
-    }
-
-    if (!validarTelefono(conductor.telefono)) {
-      alert(
-        "Teléfono inválido. Formato: 9 dígitos que empiecen por 6, 7, 8 o 9"
-      );
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      setError(null);
-
-      const url =
-        modoFormulario === "crear"
-          ? "http://localhost:8080/api/conductores"
-          : `http://localhost:8080/api/conductores/${selectedDni}`;
-
-      const method = modoFormulario === "crear" ? "POST" : "PUT";
-
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(conductor),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.text();
-        throw new Error(errorData || "Error al guardar conductor");
-      }
-
-      const resultado = await res.json();
-
-      if (modoFormulario === "crear") {
-        setConductores([...conductores, resultado]);
-        setSuccessMessage("Conductor creado exitosamente");
-      } else {
-        setConductores(
-          conductores.map((c) => (c.dni === selectedDni ? resultado : c))
-        );
-        setSuccessMessage("Conductor actualizado exitosamente");
-        setSelectedDni(null);
-      }
-
+    submitConductor(conductor, modoFormulario, () => {
       setMuestraFormulario(false);
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err) {
-      setError(err.message);
-      console.error("Error:", err);
-    } finally {
-      setSubmitting(false);
-    }
+    });
   };
 
   // Eliminar conductor
@@ -168,7 +129,7 @@ export default function ConductoresTab() {
       setSuccessMessage("Conductor eliminado exitosamente");
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
-      setError(err.message);
+      //setError(err.message);
       console.error("Error:", err);
     } finally {
       setSubmitting(false);
@@ -179,14 +140,14 @@ export default function ConductoresTab() {
   const handleCancel = () => {
     setMuestraFormulario(false);
     setConductor(CONDUCTOR_INICIAL);
-    setError(null);
+    //setError(null);
   };
 
   // MENSAJE DE CARGA
   if (isLoading) {
     return (
       <div className="tabla-container">
-        <p className="mensaje-carga">Cargando conductores...</p>
+        <p className="mensaje-carga">{MENSAJES.cargaConductores}</p>
       </div>
     );
   }
@@ -195,7 +156,7 @@ export default function ConductoresTab() {
     <div className="tabla-container">
       <h2 className="tabla-title">Conductores</h2>
 
-      {error && <div className="mensaje-error">⚠️ {error}</div>}
+      {submitError && <div className="mensaje-error">⚠️ {submitError}</div>}
 
       {successMessage && (
         <div className="mensaje-exito">✓ {successMessage}</div>
@@ -209,12 +170,6 @@ export default function ConductoresTab() {
         submitting={submitting}
       />
 
-      <VistaConductores
-        conductores={conductores}
-        selectedDni={selectedDni}
-        setSelectedDni={setSelectedDni}
-      />
-
       {muestraFormulario && (
         <FormularioConductor
           conductor={conductor}
@@ -225,6 +180,12 @@ export default function ConductoresTab() {
           handleCancel={handleCancel}
         />
       )}
+
+      <VistaConductores
+        conductores={conductores}
+        selectedDni={selectedDni}
+        setSelectedDni={setSelectedDni}
+      />
     </div>
   );
 }
