@@ -1,4 +1,4 @@
-# 📚 Manual: Cómo Funciona Tu App React (Para Principiantes)
+# 📚 Manual: Cómo Funciona Tu App React Para Principiantes
 
 ## 🎯 ¿Qué hace esta app?
 
