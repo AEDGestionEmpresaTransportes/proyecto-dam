@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import ConductoresTab from "./tabs/ConductoresTab";
+import MunicipiosTab from "./tabs/MunicipiosTab";
+import VehiculosTab from "./tabs/VehiculosTab";
+import PaquetesTab from "./tabs/PaquetesTab";
+import ConduceTab from "./tabs/ConduceTab";
 import "./tabsContainer.css";
 
 export default function TabsContainer() {
@@ -47,11 +51,10 @@ export default function TabsContainer() {
 
       <div className="tabs-content">
         {tab === "conductores" && <ConductoresTab />}
-        {/* Aquí irán los otros tabs cuando los implementes */}
-        {/* {tab === 'vehiculos' && <VehiculosTab />} */}
-        {/* {tab === 'municipios' && <MunicipiosTab />} */}
-        {/* {tab === 'paquetes' && <PaquetesTab />} */}
-        {/* {tab === 'conduce' && <ConduceTab />} */}
+        {tab === "vehiculos" && <VehiculosTab />}
+        {tab === "municipios" && <MunicipiosTab />}
+        {tab === "paquetes" && <PaquetesTab />}
+        {tab === "conduce" && <ConduceTab />}
       </div>
     </div>
   );

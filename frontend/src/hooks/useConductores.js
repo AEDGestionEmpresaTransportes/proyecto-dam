@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import conductoresAPI from "../services/conductoresAPI"; // Importa API con las operaciones CRUD
+import conductoresAPI from "../services/conductoresAPI.js"; // Importa API con las operaciones CRUD
 
 export default function useConductores() {
   const [conductores, setConductores] = useState([]); // Lista de conductores cargados desde el backend

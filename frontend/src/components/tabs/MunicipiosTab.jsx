@@ -1,104 +1,118 @@
-import React, { useEffect, useState } from 'react';
-import './TablaEstilos.css';
+import React, { useState } from "react";
+import VistaMunicipios from "./municipio/VistaMunicipios";
+import FormularioMunicipio from "./municipio/FormularioMunicipio";
+import BotonesCRUD from "../comunes/BotonesCRUD";
+
+import useMunicipios from "../../hooks/useMunicipios";
+import useCRUD from "../../hooks/useCRUD";
+import { MENSAJES } from "../../utils/mensajes";
+import "../comunes/tablaBase.css";
+
+const MUNICIPIO_INICIAL = { codigo: "", nombre: "" };
 
 export default function MunicipiosTab() {
-  const [municipios, setMunicipios] = useState([]);
+  const { municipios, setMunicipios, isLoading } = useMunicipios();
   const [selectedId, setSelectedId] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [nuevoMunicipio, setNuevoMunicipio] = useState({
-    nombre: '',
-    provincia: '',
+  const [muestraFormulario, setMuestraFormulario] = useState(false);
+  const [modoFormulario, setModoFormulario] = useState("crear");
+  const [municipio, setMunicipio] = useState(MUNICIPIO_INICIAL);
+
+  const { submitItem, deleteItem, submitting, successMessage, error } = useCRUD({
+    items: municipios,
+    setItems: setMunicipios,
+    setSelectedId: setSelectedId,
+    apiUrl: "http://localhost:8080/api/municipios",
+    idField: "codigo",
+    transformBeforeSave: (m) => m,
+    mensajes: {
+      exitoCreacion: MENSAJES.exitoCreacionMunicipio,
+      exitoActualizacion: MENSAJES.exitoActualizacionMunicipio,
+      exitoEliminacion: MENSAJES.exitoEliminacionMunicipio,
+    },
   });
 
-  useEffect(() => {
-    fetch('http://localhost:8080/api/municipios')
-      .then(res => res.json())
-      .then(setMunicipios);
-  }, []);
-
   const handleCreate = () => {
-    setShowForm(true);
-    setNuevoMunicipio({ nombre: '', provincia: '' });
+    setModoFormulario("crear");
+    setMunicipio(MUNICIPIO_INICIAL);
+    setMuestraFormulario(true);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const res = await fetch('http://localhost:8080/api/municipios', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(nuevoMunicipio),
-    });
-    if (res.ok) {
-      const creado = await res.json();
-      setMunicipios([...municipios, creado]);
-      setShowForm(false);
-    }
+  const handleEdit = () => {
+    if (!selectedId) return alert("Selecciona un municipio para editar");
+    const seleccionado = municipios.find((m) => m.codigo === selectedId);
+    if (!seleccionado) return;
+    setModoFormulario("editar");
+    setMunicipio({ ...seleccionado });
+    setMuestraFormulario(true);
+  };
+
+  const handleDelete = () => {
+    if (!selectedId) return alert("Selecciona un municipio para eliminar");
+    const seleccionado = municipios.find((m) => m.codigo === selectedId);
+    const mensaje = MENSAJES.confirmEliminarMunicipio(seleccionado?.nombre);
+    deleteItem(selectedId, mensaje);
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setNuevoMunicipio(prev => ({ ...prev, [name]: value }));
+    setMunicipio((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleEdit = () => {
-    if (!selectedId) return alert('Selecciona un municipio para editar');
-    alert(`Función de edición para ID: ${selectedId}`);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    submitItem(municipio, modoFormulario, () => {
+      setMuestraFormulario(false);
+    });
   };
 
-  const handleDelete = async () => {
-    if (!selectedId) return alert('Selecciona un municipio para eliminar');
-    const confirm = window.confirm('¿Eliminar este municipio?');
-    if (!confirm) return;
-    await fetch(`http://localhost:8080/api/municipios/${selectedId}`, { method: 'DELETE' });
-    setMunicipios(municipios.filter(m => m.id !== selectedId));
-    setSelectedId(null);
+  const handleCancel = () => {
+    setMuestraFormulario(false);
+    setMunicipio(MUNICIPIO_INICIAL);
   };
+
+  if (isLoading) {
+    return (
+      <div className="tabla-container">
+        <p className="mensaje-carga">{MENSAJES.cargaMunicipios || "Cargando municipios..."}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="tabla-container">
       <h2 className="tabla-title">Municipios</h2>
-      <div className="tabla-actions">
-        <button onClick={handleCreate}>➕ Crear</button>
-        <button onClick={handleEdit}>✏️ Editar</button>
-        <button onClick={handleDelete}>🗑️ Eliminar</button>
-      </div>
 
-      {showForm && (
-        <form className="formulario" onSubmit={handleSubmit}>
-          <h3>Nuevo Municipio</h3>
-          <input name="nombre" placeholder="Nombre" value={nuevoMunicipio.nombre} onChange={handleChange} required />
-          <input name="provincia" placeholder="Provincia" value={nuevoMunicipio.provincia} onChange={handleChange} required />
-          <div className="formulario-botones">
-            <button type="submit">Guardar</button>
-            <button type="button" onClick={() => setShowForm(false)}>Cancelar</button>
-          </div>
-        </form>
+      {error && <div className="mensaje-error">⚠️ {error}</div>}
+      {successMessage && <div className="mensaje-exito">✓ {successMessage}</div>}
+
+      <BotonesCRUD
+        onCreate={handleCreate}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        selectedDni={selectedId}
+        submitting={submitting}
+      />
+
+      {muestraFormulario && (
+        <FormularioMunicipio
+          municipio={municipio}
+          modoFormulario={modoFormulario}
+          submitting={submitting}
+          handleChange={handleChange}
+          handleSubmit={handleSubmit}
+          handleCancel={handleCancel}
+        />
       )}
 
-      <table className="tabla-estilizada">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Provincia</th>
-          </tr>
-        </thead>
-        <tbody>
-          {municipios.map(m => (
-            <tr
-              key={m.id}
-              onClick={() => setSelectedId(m.id)}
-              style={{ backgroundColor: selectedId === m.id ? '#c8e6c9' : '', cursor: 'pointer' }}
-            >
-              <td>{m.id}</td>
-              <td>{m.nombre}</td>
-              <td>{m.provincia}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <VistaMunicipios
+        municipios={municipios}
+        selectedId={selectedId}
+        setSelectedId={setSelectedId}
+      />
     </div>
   );
 }
+
+
 
 

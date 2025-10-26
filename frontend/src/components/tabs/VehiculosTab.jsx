@@ -1,110 +1,139 @@
-import React, { useEffect, useState } from 'react';
-import './TablaEstilos.css';
+import React, { useState } from "react";
+import VistaVehiculos from "./vehiculo/VistaVehiculo";
+import FormularioVehiculo from "./vehiculo/FormularioVehiculo";
+import BotonesCRUD from "../comunes/BotonesCRUD";
+
+import useVehiculos from "../../hooks/useVehiculos";
+import useCRUD from "../../hooks/useCRUD";
+
+import { MENSAJES } from "../../utils/mensajes";
+import "../comunes/tablaBase.css";
+
+// Estado inicial del formulario
+const VEHICULO_INICIAL = {
+  matricula: "",
+  modelo: "",
+  tipo: "",
+  potencia: "",
+};
 
 export default function VehiculosTab() {
-  const [vehiculos, setVehiculos] = useState([]);
+  const { vehiculos, setVehiculos, isLoading } = useVehiculos();
+
   const [selectedMatricula, setSelectedMatricula] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [nuevoVehiculo, setNuevoVehiculo] = useState({
-    matricula: '',
-    modelo: '',
-    tipo: '',
-    peso: '',
+  const [muestraFormulario, setMuestraFormulario] = useState(false);
+  const [modoFormulario, setModoFormulario] = useState("crear");
+  const [vehiculo, setVehiculo] = useState(VEHICULO_INICIAL);
+
+  const { submitItem, deleteItem, submitting, successMessage, error } = useCRUD({
+    items: vehiculos,
+    setItems: setVehiculos,
+    setSelectedId: setSelectedMatricula,
+    apiUrl: "http://localhost:8080/api/vehiculos",
+    idField: "matricula",
+    transformBeforeSave: (vehiculo) => ({
+      ...vehiculo,
+      potencia: vehiculo.potencia ? parseInt(vehiculo.potencia) : 0,
+    }),
+    mensajes: {
+      exitoCreacion: MENSAJES.exitoCreacion,
+      exitoActualizacion: MENSAJES.exitoActualizacion,
+      exitoEliminacion: MENSAJES.exitoEliminacion,
+    },
   });
 
-  useEffect(() => {
-    fetch('http://localhost:8080/api/vehiculos')
-      .then(res => res.json())
-      .then(setVehiculos);
-  }, []);
-
   const handleCreate = () => {
-    setShowForm(true);
-    setNuevoVehiculo({ matricula: '', modelo: '', tipo: '', peso: '' });
+    setModoFormulario("crear");
+    setVehiculo(VEHICULO_INICIAL);
+    setMuestraFormulario(true);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const res = await fetch('http://localhost:8080/api/vehiculos', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(nuevoVehiculo),
-    });
-    if (res.ok) {
-      const creado = await res.json();
-      setVehiculos([...vehiculos, creado]);
-      setShowForm(false);
+  const handleEdit = () => {
+    if (!selectedMatricula) {
+      alert("Selecciona un vehículo para editar");
+      return;
     }
+
+    const vehiculoSeleccionado = vehiculos.find(
+      (v) => v.matricula === selectedMatricula
+    );
+    if (!vehiculoSeleccionado) return;
+
+    setModoFormulario("editar");
+    setVehiculo({ ...vehiculoSeleccionado });
+    setMuestraFormulario(true);
+  };
+
+  const handleDelete = () => {
+    if (!selectedMatricula) {
+      alert("Selecciona un vehículo para eliminar");
+      return;
+    }
+
+    const vehiculoSeleccionado = vehiculos.find(
+      (v) => v.matricula === selectedMatricula
+    );
+    const mensaje = MENSAJES.confirmEliminar(vehiculoSeleccionado?.modelo);
+
+    deleteItem(selectedMatricula, mensaje);
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setNuevoVehiculo(prev => ({ ...prev, [name]: value }));
+    setVehiculo((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleEdit = () => {
-    if (!selectedMatricula) return alert('Selecciona un vehículo para editar');
-    alert(`Función de edición para matrícula: ${selectedMatricula}`);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    submitItem(vehiculo, modoFormulario, () => {
+      setMuestraFormulario(false);
+    });
   };
 
-  const handleDelete = async () => {
-    if (!selectedMatricula) return alert('Selecciona un vehículo para eliminar');
-    const confirm = window.confirm('¿Eliminar este vehículo?');
-    if (!confirm) return;
-    await fetch(`http://localhost:8080/api/vehiculos/${selectedMatricula}`, { method: 'DELETE' });
-    setVehiculos(vehiculos.filter(v => v.matricula !== selectedMatricula));
-    setSelectedMatricula(null);
+  const handleCancel = () => {
+    setMuestraFormulario(false);
+    setVehiculo(VEHICULO_INICIAL);
   };
+
+  if (isLoading) {
+    return (
+      <div className="tabla-container">
+        <p className="mensaje-carga">{MENSAJES.cargaVehiculos || "Cargando vehículos..."}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="tabla-container">
       <h2 className="tabla-title">Vehículos</h2>
-      <div className="tabla-actions">
-        <button onClick={handleCreate}>➕ Crear</button>
-        <button onClick={handleEdit}>✏️ Editar</button>
-        <button onClick={handleDelete}>🗑️ Eliminar</button>
-      </div>
 
-      {showForm && (
-        <form className="formulario" onSubmit={handleSubmit}>
-          <h3>Nuevo Vehículo</h3>
-          <input name="matricula" placeholder="Matrícula" value={nuevoVehiculo.matricula} onChange={handleChange} required />
-          <input name="modelo" placeholder="Modelo" value={nuevoVehiculo.modelo} onChange={handleChange} required />
-          <input name="tipo" placeholder="Tipo" value={nuevoVehiculo.tipo} onChange={handleChange} />
-          <input name="peso" placeholder="Peso" type="number" value={nuevoVehiculo.peso} onChange={handleChange} />
-          <div className="formulario-botones">
-            <button type="submit">Guardar</button>
-            <button type="button" onClick={() => setShowForm(false)}>Cancelar</button>
-          </div>
-        </form>
+      {error && <div className="mensaje-error">⚠️ {error}</div>}
+      {successMessage && <div className="mensaje-exito">✓ {successMessage}</div>}
+
+      <BotonesCRUD
+        onCreate={handleCreate}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        selectedDni={selectedMatricula}
+        submitting={submitting}
+      />
+
+      {muestraFormulario && (
+        <FormularioVehiculo
+          vehiculo={vehiculo}
+          modoFormulario={modoFormulario}
+          submitting={submitting}
+          handleChange={handleChange}
+          handleSubmit={handleSubmit}
+          handleCancel={handleCancel}
+        />
       )}
 
-      <table className="tabla-estilizada">
-        <thead>
-          <tr>
-            <th>Matrícula</th>
-            <th>Modelo</th>
-            <th>Tipo</th>
-            <th>Peso</th>
-          </tr>
-        </thead>
-        <tbody>
-          {vehiculos.map(v => (
-            <tr
-              key={v.matricula}
-              onClick={() => setSelectedMatricula(v.matricula)}
-              style={{ backgroundColor: selectedMatricula === v.matricula ? '#c8e6c9' : '', cursor: 'pointer' }}
-            >
-              <td>{v.matricula}</td>
-              <td>{v.modelo}</td>
-              <td>{v.tipo}</td>
-              <td>{v.peso}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <VistaVehiculos
+        vehiculos={vehiculos}
+        selectedMatricula={selectedMatricula}
+        setSelectedMatricula={setSelectedMatricula}
+      />
     </div>
   );
 }
-
-
