@@ -1,12 +1,13 @@
-import React from 'react';
-import TabsContainer from './components/TabsContainer';
-import './App.css'; // Importa el CSS
+import React from "react";
+import TabsContainer from "./components/TabsContainer";
+import "./app.css";
+import "./styles/global.css";
 
-function App() {
+export default function App() {
   return (
     <div className="app-wrapper">
       <header className="app-header">
-        <h1>Gestión de Paquetería</h1>
+        <h1>Sistema de Gestión - DAM</h1>
       </header>
       <main className="app-main">
         <TabsContainer />
@@ -14,6 +15,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
-
