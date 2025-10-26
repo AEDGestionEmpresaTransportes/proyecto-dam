@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { validarDNI, validarTelefono } from "../../../utils/validaciones";
 import { MENSAJES } from "../../../utils/mensajes";
-
-import "./formularioConductor.css";
+import "../../comunes/formularioBase.css";
 
 export default function FormularioConductor({
   conductor,
   modoFormulario,
   submitting,
+  municipios = [],
   handleChange,
   handleSubmit,
   handleCancel,
@@ -31,9 +31,7 @@ export default function FormularioConductor({
 
   const handleLocalSubmit = (e) => {
     e.preventDefault(); // evita que el formulario se envíe automáticamente
-
     if (!validarCampos()) return; // si hay errores, no continúa
-
     handleSubmit(e); // si todo está bien, llama al padre
   };
 
@@ -109,16 +107,19 @@ export default function FormularioConductor({
       <div>
         <label htmlFor="municipio">Municipio</label>
         <select
+          id="municipio"
           name="municipio"
           value={conductor.municipio}
           onChange={handleChange}
           required
         >
           <option value="">Selecciona municipio</option>
-          <option value="35004">Las Palmas de Gran Canaria</option>
-          <option value="35200">Telde</option>
-          <option value="35300">Gáldar</option>
-          <option value="35400">Valsequillo</option>
+          {/* Mapea los municipios dinámicamente */}
+          {municipios.map((m) => (
+            <option key={m.codigo} value={m.codigo}>
+              {m.nombre}
+            </option>
+          ))}
         </select>
       </div>
 

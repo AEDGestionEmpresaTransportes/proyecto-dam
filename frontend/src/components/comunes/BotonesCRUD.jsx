@@ -1,3 +1,6 @@
+import React from "react";
+import "./botonesCRUD.css";
+
 export default function BotonesCRUD({
   onCreate,
   onEdit,

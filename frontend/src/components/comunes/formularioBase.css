@@ -1,6 +1,12 @@
+/* Formulario base */
 .formulario {
   margin-bottom: 2rem;
   background-color: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ddd;
+  animation: slideDown 0.3s ease;
 }
 
 .formulario h3 {
@@ -22,7 +28,8 @@
   font-size: 0.9rem;
 }
 
-.formulario input {
+.formulario input,
+.formulario select {
   width: 100%;
   padding: 0.75rem;
   font-size: 1rem;
@@ -31,21 +38,24 @@
   transition: border-color 0.2s ease;
   box-sizing: border-box;
   color: #222;
-  background-color: #f0f0f0;
+  background-color: #fff;
 }
 
-.formulario input:focus {
+.formulario input:focus,
+.formulario select:focus {
   outline: none;
   border-color: #4caf50;
   box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.15);
 }
 
-.formulario input:disabled {
+.formulario input:disabled,
+.formulario select:disabled {
   background-color: #f2f2f2;
   cursor: not-allowed;
   color: #666;
 }
 
+/* Botones del formulario */
 .formulario-botones {
   display: flex;
   gap: 1rem;
@@ -60,12 +70,12 @@
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
+  flex: 1;
 }
 
 .formulario-botones button[type="submit"] {
   background-color: #4caf50;
   color: white;
-  flex: 1;
 }
 
 .formulario-botones button[type="submit"]:hover:not(:disabled) {
@@ -75,7 +85,6 @@
 .formulario-botones button[type="button"] {
   background-color: #757575;
   color: white;
-  flex: 1;
 }
 
 .formulario-botones button[type="button"]:hover:not(:disabled) {
@@ -87,8 +96,20 @@
   cursor: not-allowed;
 }
 
+/* Mensajes de error en campos */
 .error {
   color: #d32f2f;
   font-size: 0.85rem;
   margin-top: 0.25rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .formulario {
+    padding: 1.5rem;
+  }
+
+  .formulario-botones {
+    flex-direction: column;
+  }
 }

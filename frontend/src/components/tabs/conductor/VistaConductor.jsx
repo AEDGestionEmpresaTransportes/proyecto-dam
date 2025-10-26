@@ -1,6 +1,5 @@
 import React from "react";
-
-import "./vistaConductor.css";
+import "../../comunes/tablaBase.css";
 
 export default function VistaConductores({
   conductores,

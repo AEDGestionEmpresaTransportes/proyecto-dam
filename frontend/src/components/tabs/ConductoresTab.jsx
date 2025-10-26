@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import VistaConductores from "./conductor/VistaConductor";
 import FormularioConductor from "./conductor/FormularioConductor";
-import BotonesCRUD from "../botonesCRUD/BotonesCRUD";
+import BotonesCRUD from "../comunes/BotonesCRUD";
 
 import useConductores from "../../hooks/useConductores";
-import useSubmitConductor from "../../hooks/useSubmitConductor";
+import useMunicipios from "../../hooks/useMunicipios";
+import useCRUD from "../../hooks/useCRUD";
 
 import { MENSAJES } from "../../utils/mensajes";
-
-//import "../TablaEstilosMejoradov2.css";
+import "../comunes/tablaBase.css";
 
 // Estado inicial del formulario
 const CONDUCTOR_INICIAL = {
@@ -21,40 +21,45 @@ const CONDUCTOR_INICIAL = {
 };
 
 export default function ConductoresTab() {
-  // Importa el hook de la lógica de lectura de conductores
-  const { conductores, setConductores, isLoading, error, fetchConductores } =
-    useConductores();
+  // Hook para cargar conductores
+  const { conductores, setConductores, isLoading } = useConductores();
 
-  const [selectedDni, setSelectedDni] = useState(null); // DNI Seleccionado en la tabla
+  // Hook para cargar municipios
+  const { municipios, isLoading: isLoadingMunicipios } = useMunicipios();
 
-  // Importa el hook de la lógica de creación de conductores
-  const {
-    submitConductor,
-    submitting,
-    successMessage,
-    error: submitError,
-  } = useSubmitConductor({
-    conductores,
-    setConductores,
-    setSelectedDni,
-  });
+  const [selectedDni, setSelectedDni] = useState(null);
+  const [muestraFormulario, setMuestraFormulario] = useState(false);
+  const [modoFormulario, setModoFormulario] = useState("crear");
+  const [conductor, setConductor] = useState(CONDUCTOR_INICIAL);
 
-  const [muestraFormulario, setMuestraFormulario] = useState(false); // Se muestra el formulario
-  const [modoFormulario, setModoFormulario] = useState("crear"); // Modo 'crear' o 'editar'
-  const [conductor, setConductor] = useState(CONDUCTOR_INICIAL); // Datos del conductor
-  //const [submitting, setSubmitting] = useState(false); // Está enviando?
-  //const [successMessage, setSuccessMessage] = useState(null); // Mensaje de éxito
+  // Hook genérico CRUD
+  const { submitItem, deleteItem, submitting, successMessage, error } = useCRUD(
+    {
+      items: conductores,
+      setItems: setConductores,
+      setSelectedId: setSelectedDni,
+      apiUrl: "http://localhost:8080/api/conductores",
+      idField: "dni",
+      transformBeforeSave: (conductor, modo) => ({
+        ...conductor,
+        salario: conductor.salario ? parseFloat(conductor.salario) : 0,
+        municipio: conductor.municipio
+          ? { codigo: parseInt(conductor.municipio) }
+          : null,
+      }),
+      mensajes: {
+        exitoCreacion: MENSAJES.exitoCreacion,
+        exitoActualizacion: MENSAJES.exitoActualizacion,
+        exitoEliminacion: MENSAJES.exitoEliminacion,
+      },
+    }
+  );
 
-  // --------------- CREATE ---------------
-  // Abrir formulario para crear un nuevo conductor
+  // Abrir formulario para crear
   const handleCreate = () => {
-    setModoFormulario("crear"); // Modo del formulario en 'crear'
-    setConductor(CONDUCTOR_INICIAL); // Limpia campos
-    setMuestraFormulario(true); // Muestra formulario
-
-    // Limpieza de mensajes de error y éxito anteriores
-    //setError(null);
-    //setSuccessMessage(null);
+    setModoFormulario("crear");
+    setConductor(CONDUCTOR_INICIAL);
+    setMuestraFormulario(true);
   };
 
   // Abrir formulario para editar
@@ -72,32 +77,16 @@ export default function ConductoresTab() {
     setModoFormulario("editar");
     setConductor({
       ...conductorSeleccionado,
-      municipio:
-        conductorSeleccionado.municipio?.nombre ||
-        conductorSeleccionado.municipio ||
-        "",
+      // Extrae el código del municipio correctamente
+      municipio: conductorSeleccionado.municipio?.codigo
+        ? String(conductorSeleccionado.municipio.codigo)
+        : conductorSeleccionado.municipio || "",
     });
     setMuestraFormulario(true);
-    //setError(null);
-    setSuccessMessage(null);
-  };
-
-  // Manejar cambios en el formulario
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setConductor((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // Maneja el envío del formulario
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    submitConductor(conductor, modoFormulario, () => {
-      setMuestraFormulario(false);
-    });
   };
 
   // Eliminar conductor
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!selectedDni) {
       alert("Selecciona un conductor para eliminar");
       return;
@@ -106,48 +95,38 @@ export default function ConductoresTab() {
     const conductorSeleccionado = conductores.find(
       (c) => c.dni === selectedDni
     );
-    const confirmDelete = window.confirm(
-      `¿Estás seguro de eliminar a ${
-        conductorSeleccionado?.nombre || "este conductor"
-      }?`
-    );
-    if (!confirmDelete) return;
+    const mensaje = MENSAJES.confirmEliminar(conductorSeleccionado?.nombre);
 
-    try {
-      setSubmitting(true);
-      const res = await fetch(
-        `http://localhost:8080/api/conductores/${selectedDni}`,
-        {
-          method: "DELETE",
-        }
-      );
+    deleteItem(selectedDni, mensaje);
+  };
 
-      if (!res.ok) throw new Error("Error al eliminar conductor");
+  // Manejar cambios en el formulario
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setConductor((prev) => ({ ...prev, [name]: value }));
+  };
 
-      setConductores(conductores.filter((c) => c.dni !== selectedDni));
-      setSelectedDni(null);
-      setSuccessMessage("Conductor eliminado exitosamente");
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err) {
-      //setError(err.message);
-      console.error("Error:", err);
-    } finally {
-      setSubmitting(false);
-    }
+  // Enviar formulario
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    submitItem(conductor, modoFormulario, () => {
+      setMuestraFormulario(false);
+    });
   };
 
   // Cancelar formulario
   const handleCancel = () => {
     setMuestraFormulario(false);
     setConductor(CONDUCTOR_INICIAL);
-    //setError(null);
   };
 
-  // MENSAJE DE CARGA
-  if (isLoading) {
+  // Mensaje de carga
+  if (isLoading || isLoadingMunicipios) {
     return (
       <div className="tabla-container">
-        <p className="mensaje-carga">{MENSAJES.cargaConductores}</p>
+        <p className="mensaje-carga">
+          {isLoading ? MENSAJES.cargaConductores : "Cargando municipios..."}
+        </p>
       </div>
     );
   }
@@ -156,8 +135,7 @@ export default function ConductoresTab() {
     <div className="tabla-container">
       <h2 className="tabla-title">Conductores</h2>
 
-      {submitError && <div className="mensaje-error">⚠️ {submitError}</div>}
-
+      {error && <div className="mensaje-error">⚠️ {error}</div>}
       {successMessage && (
         <div className="mensaje-exito">✓ {successMessage}</div>
       )}
@@ -175,6 +153,7 @@ export default function ConductoresTab() {
           conductor={conductor}
           modoFormulario={modoFormulario}
           submitting={submitting}
+          municipios={municipios}
           handleChange={handleChange}
           handleSubmit={handleSubmit}
           handleCancel={handleCancel}
