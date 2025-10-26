@@ -8,7 +8,7 @@ export default function FormularioPaquete({
   municipios,
   conductores,
   handleChange,
-  handleSubmit,
+  handleSubmitPaquete,
   handleCancel,
 }) {
   const [errores, setErrores] = useState({});
@@ -16,7 +16,7 @@ export default function FormularioPaquete({
   const validarCampos = () => {
     const nuevosErrores = {};
 
-    if (!paquete.codigo || paquete.codigo.trim() === "") {
+    if (modoFormulario === "editar" && !paquete.codigo) {
       nuevosErrores.codigo = "El código es obligatorio";
     }
 
@@ -47,25 +47,21 @@ export default function FormularioPaquete({
   const handleLocalSubmit = (e) => {
     e.preventDefault();
     if (!validarCampos()) return;
-    handleSubmit(e);
+
+    handleSubmitPaquete(paquete);
   };
 
   return (
     <form className="formulario" onSubmit={handleLocalSubmit}>
       <h3>{modoFormulario === "crear" ? "Nuevo Paquete" : "Editar Paquete"}</h3>
-
       <div>
-        <label htmlFor="codigo">Código *</label>
+        <label htmlFor="codigo">Código</label>
         <input
           id="codigo"
           name="codigo"
-          placeholder="Ej. 1111"
-          value={paquete.codigo}
-          onChange={handleChange}
-          disabled={modoFormulario === "editar"}
-          required
+          value={paquete.codigo || ""}
+          readOnly
         />
-        {errores.codigo && <p className="error">{errores.codigo}</p>}
       </div>
 
       <div>
@@ -91,7 +87,9 @@ export default function FormularioPaquete({
           onChange={handleChange}
           required
         />
-        {errores.destinatario && <p className="error">{errores.destinatario}</p>}
+        {errores.destinatario && (
+          <p className="error">{errores.destinatario}</p>
+        )}
       </div>
 
       <div>
@@ -123,7 +121,9 @@ export default function FormularioPaquete({
             </option>
           ))}
         </select>
-        {errores.municipioDestino && <p className="error">{errores.municipioDestino}</p>}
+        {errores.municipioDestino && (
+          <p className="error">{errores.municipioDestino}</p>
+        )}
       </div>
 
       <div>

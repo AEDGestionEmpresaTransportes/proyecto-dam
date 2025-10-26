@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import VistaPaquetes from "./paquete/VistaPaquete";
 import FormularioPaquete from "./paquete/FormularioPaquete";
 import BotonesCRUD from "../comunes/BotonesCRUD";
@@ -31,27 +31,28 @@ export default function PaquetesTab() {
   const [modoFormulario, setModoFormulario] = useState("crear");
   const [paquete, setPaquete] = useState(PAQUETE_INICIAL);
 
-  const { submitItem, deleteItem, submitting, successMessage, error } = useCRUD({
-    items: paquetes,
-    setItems: setPaquetes,
-    setSelectedId: setSelectedCodigo,
-    apiUrl: "http://localhost:8080/api/paquetes",
-    idField: "codigo",
-    transformBeforeSave: (paquete, modo) => ({
-      ...paquete,
-      municipioDestino: paquete.municipioDestino
-        ? { codigo: parseInt(paquete.municipioDestino) }
-        : null,
-      conductor: paquete.conductor
-        ? { dni: paquete.conductor }
-        : null,
-    }),
-    mensajes: {
-      exitoCreacion: MENSAJES.exitoCreacion,
-      exitoActualizacion: MENSAJES.exitoActualizacion,
-      exitoEliminacion: MENSAJES.exitoEliminacion,
-    },
-  });
+  const { submitItem, deleteItem, submitting, successMessage, error } = useCRUD(
+    {
+      items: paquetes,
+      setItems: setPaquetes,
+      setSelectedId: setSelectedCodigo,
+      apiUrl: "http://localhost:8080/api/paquetes",
+      idField: "codigo",
+      transformBeforeSave: (paquete, modo) => ({
+        ...paquete,
+        municipioDestino: paquete.municipioDestino
+          ? { codigo: parseInt(paquete.municipioDestino) }
+          : null,
+        conductor: paquete.conductor ? { dni: paquete.conductor } : null,
+      }),
+
+      mensajes: {
+        exitoCreacion: MENSAJES.exitoCreacion,
+        exitoActualizacion: MENSAJES.exitoActualizacion,
+        exitoEliminacion: MENSAJES.exitoEliminacion,
+      },
+    }
+  );
 
   const handleCreate = () => {
     setModoFormulario("crear");
@@ -65,7 +66,9 @@ export default function PaquetesTab() {
       return;
     }
 
-    const paqueteSeleccionado = paquetes.find((p) => p.codigo === selectedCodigo);
+    const paqueteSeleccionado = paquetes.find(
+      (p) => p.codigo === selectedCodigo
+    );
     if (!paqueteSeleccionado) return;
 
     setModoFormulario("editar");
@@ -85,7 +88,9 @@ export default function PaquetesTab() {
       return;
     }
 
-    const paqueteSeleccionado = paquetes.find((p) => p.codigo === selectedCodigo);
+    const paqueteSeleccionado = paquetes.find(
+      (p) => p.codigo === selectedCodigo
+    );
     const mensaje = MENSAJES.confirmEliminar(paqueteSeleccionado?.descripcion);
 
     deleteItem(selectedCodigo, mensaje);
@@ -96,10 +101,10 @@ export default function PaquetesTab() {
     setPaquete((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    submitItem(paquete, modoFormulario, () => {
+  const handleSubmitPaquete = (datos) => {
+    submitItem(datos, modoFormulario, () => {
       setMuestraFormulario(false);
+      setPaquete(PAQUETE_INICIAL);
     });
   };
 
@@ -127,7 +132,9 @@ export default function PaquetesTab() {
       <h2 className="tabla-title">Paquetes</h2>
 
       {error && <div className="mensaje-error">⚠️ {error}</div>}
-      {successMessage && <div className="mensaje-exito">✓ {successMessage}</div>}
+      {successMessage && (
+        <div className="mensaje-exito">✓ {successMessage}</div>
+      )}
 
       <BotonesCRUD
         onCreate={handleCreate}
@@ -145,7 +152,7 @@ export default function PaquetesTab() {
           municipios={municipios}
           conductores={conductores}
           handleChange={handleChange}
-          handleSubmit={handleSubmit}
+          handleSubmitPaquete={handleSubmitPaquete}
           handleCancel={handleCancel}
         />
       )}
@@ -158,4 +165,3 @@ export default function PaquetesTab() {
     </div>
   );
 }
-
