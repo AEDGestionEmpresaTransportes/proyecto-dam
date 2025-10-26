@@ -29,7 +29,7 @@ export default function VistaConduces({ conduces }) {
       </thead>
       <tbody>
         {conduces.map((c) => (
-          <tr key={c.conductor.dni}>
+          <tr key={`${c.conductor.dni}-${c.vehiculo.matricula}-${c.fecha}`}>
             <td>{c.conductor.dni}</td>
             <td>{c.conductor.nombre}</td>
             <td>{c.vehiculo.matricula}</td>

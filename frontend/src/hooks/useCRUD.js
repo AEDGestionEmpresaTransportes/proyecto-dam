@@ -57,11 +57,15 @@ export default function useCRUD({
 
       const resultado = await res.json();
 
-      // 🔄 Recargar el item completo desde el servidor para obtener las relaciones
-      const recargarRes = await fetch(`${apiUrl}/${resultado[idField]}`);
-      const itemCompleto = recargarRes.ok
-        ? await recargarRes.json()
-        : resultado;
+      let itemCompleto = resultado;
+      const idParaRefrescar = resultado[idField]; // Esto será 'undefined' para Conduce // Esto evita el fallo de 'GET /undefined' para claves compuestas.
+
+      // Solo intentar la recarga si el modo es "crear" Y existe un ID simple válido.
+      if (idParaRefrescar) {
+        // Recargar el item completo desde el servidor para obtener las relaciones
+        const recargarRes = await fetch(`${apiUrl}/${idParaRefrescar}`);
+        itemCompleto = recargarRes.ok ? await recargarRes.json() : resultado; // Si la recarga falla (por el motivo que sea), usa el objeto del POST
+      }
 
       if (modo === "crear") {
         setItems([...items, itemCompleto]);
@@ -83,52 +87,6 @@ export default function useCRUD({
       setSubmitting(false);
     }
   };
-  /*
-  const submitItem = async (item, modo, onSuccess) => {
-    try {
-      setSubmitting(true);
-      setError(null);
-
-      const url = modo === "crear" ? apiUrl : `${apiUrl}/${item[idField]}`;
-      const method = modo === "crear" ? "POST" : "PUT";
-
-      // Transforma el item antes de enviarlo (útil para casos especiales)
-      const itemFinal = transformBeforeSave(item, modo);
-
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(itemFinal),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.text();
-        throw new Error(errorData || "Error al guardar");
-      }
-
-      const resultado = await res.json();
-
-      if (modo === "crear") {
-        setItems([...items, resultado]);
-        setSuccessMessage(defaultMensajes.exitoCreacion);
-      } else {
-        setItems(
-          items.map((i) => (i[idField] === item[idField] ? resultado : i))
-        );
-        setSuccessMessage(defaultMensajes.exitoActualizacion);
-        setSelectedId(null);
-      }
-
-      if (onSuccess) onSuccess();
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err) {
-      setError(err.message);
-      console.error("Error:", err);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-  */
 
   /**
    * Eliminar un elemento
