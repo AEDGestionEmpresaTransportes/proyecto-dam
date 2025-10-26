@@ -13,8 +13,9 @@ import lombok.NoArgsConstructor;
 public class Paquete {
 
     @Id
-    @Column(name = "Codigo", length = 20)
-    private String codigo;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "Codigo")
+    private Integer codigo;
 
     @Column(name = "Descripcion", length = 255)
     private String descripcion;

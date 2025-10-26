@@ -23,7 +23,7 @@ public class PaqueteController {
 
     // Obtener un paquete por Código
     @GetMapping("/{codigo}")
-    public Optional<Paquete> obtenerPaqueteCodigo(@PathVariable String codigo) {
+    public Optional<Paquete> obtenerPaqueteCodigo(@PathVariable Integer codigo) {
         return paqueteRepository.findById(codigo);
     }
 
@@ -35,14 +35,14 @@ public class PaqueteController {
 
     // Actualizar paquete
     @PutMapping("/{codigo}")
-    public Paquete actualizarPaquete(@PathVariable String codigo, @RequestBody Paquete paquete) {
+    public Paquete actualizarPaquete(@PathVariable Integer codigo, @RequestBody Paquete paquete) {
         paquete.setCodigo(codigo);
         return paqueteRepository.save(paquete);
     }
 
     // Eliminar un paquete
     @DeleteMapping("/{codigo}")
-    public void eliminarPaquete(@PathVariable String codigo) {
+    public void eliminarPaquete(@PathVariable Integer codigo) {
         paqueteRepository.deleteById(codigo);
     }
 }
