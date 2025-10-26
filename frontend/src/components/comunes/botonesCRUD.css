@@ -1,0 +1,71 @@
+/* Botones de acción CRUD */
+.tabla-actions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.tabla-actions button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Botón Crear (verde) */
+.tabla-actions button:first-child {
+  background-color: #4caf50;
+  color: white;
+}
+
+.tabla-actions button:first-child:hover:not(:disabled) {
+  background-color: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
+/* Botón Editar (azul) */
+.tabla-actions button:nth-child(2) {
+  background-color: #2196f3;
+  color: white;
+}
+
+.tabla-actions button:nth-child(2):hover:not(:disabled) {
+  background-color: #1976d2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+/* Botón Eliminar (rojo) */
+.tabla-actions button:nth-child(3) {
+  background-color: #f44336;
+  color: white;
+}
+
+.tabla-actions button:nth-child(3):hover:not(:disabled) {
+  background-color: #d32f2f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
+}
+
+.tabla-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .tabla-actions {
+    flex-direction: column;
+  }
+
+  .tabla-actions button {
+    width: 100%;
+  }
+}
