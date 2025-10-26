@@ -1,11 +1,7 @@
 import React from "react";
 import "../../comunes/tablaBase.css";
 
-export default function VistaConduces({
-  conduces,
-  selectedId,
-  setSelectedId,
-}) {
+export default function VistaConduces({ conduces }) {
   if (conduces.length === 0) {
     return (
       <table className="tabla-estilizada">
@@ -33,21 +29,7 @@ export default function VistaConduces({
       </thead>
       <tbody>
         {conduces.map((c) => (
-          <tr
-            key={c.conductor.dni}
-            onClick={() => setSelectedId(c.conductor.dni)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                setSelectedId(c.conductor.dni);
-              }
-            }}
-            tabIndex={0}
-            role="button"
-            aria-selected={selectedId === c.conductor.dni}
-            className={`fila-conduce${
-              selectedId === c.conductor.dni ? " seleccionada" : ""
-            }`}
-          >
+          <tr key={c.conductor.dni}>
             <td>{c.conductor.dni}</td>
             <td>{c.conductor.nombre}</td>
             <td>{c.vehiculo.matricula}</td>

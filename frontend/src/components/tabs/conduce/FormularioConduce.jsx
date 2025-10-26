@@ -3,8 +3,9 @@ import "../../comunes/formularioBase.css";
 
 export default function FormularioConduce({
   conduce,
-  modoFormulario,
   submitting,
+  conductores,
+  vehiculos,
   handleChange,
   handleSubmit,
   handleCancel,
@@ -14,21 +15,13 @@ export default function FormularioConduce({
   const validarCampos = () => {
     const nuevosErrores = {};
 
-    // Validaciones básicas
     if (!conduce.conductor?.dni?.trim()) {
       nuevosErrores["conductor.dni"] = "El DNI del conductor es obligatorio";
     }
 
-    if (!conduce.conductor?.nombre?.trim()) {
-      nuevosErrores["conductor.nombre"] = "El nombre del conductor es obligatorio";
-    }
-
     if (!conduce.vehiculo?.matricula?.trim()) {
-      nuevosErrores["vehiculo.matricula"] = "La matrícula del vehículo es obligatoria";
-    }
-
-    if (!conduce.vehiculo?.modelo?.trim()) {
-      nuevosErrores["vehiculo.modelo"] = "El modelo del vehículo es obligatorio";
+      nuevosErrores["vehiculo.matricula"] =
+        "La matrícula del vehículo es obligatoria";
     }
 
     if (!conduce.fecha?.trim()) {
@@ -47,7 +40,7 @@ export default function FormularioConduce({
 
   return (
     <form className="formulario" onSubmit={handleLocalSubmit}>
-      <h3>{modoFormulario === "crear" ? "Nueva Asignación" : "Editar Asignación"}</h3>
+      <h3>Nueva Asignación</h3>
 
       {/* Datos del conductor */}
       <fieldset>
@@ -55,27 +48,20 @@ export default function FormularioConduce({
 
         <div>
           <label htmlFor="conductor.dni">DNI *</label>
-          <input
+          <select
             id="conductor.dni"
             name="conductor.dni"
-            value={conduce.conductor.dni}
-            onChange={handleChange}
-            disabled={modoFormulario === "editar"}
-            required
-          />
-          {errores["conductor.dni"] && <p className="error">{errores["conductor.dni"]}</p>}
-        </div>
-
-        <div>
-          <label htmlFor="conductor.nombre">Nombre *</label>
-          <input
-            id="conductor.nombre"
-            name="conductor.nombre"
-            value={conduce.conductor.nombre}
+            value={conduce.conductor?.dni || ""}
             onChange={handleChange}
             required
-          />
-          {errores["conductor.nombre"] && <p className="error">{errores["conductor.nombre"]}</p>}
+          >
+            <option value="">-- Selecciona un conductor --</option>
+            {conductores.map((c) => (
+              <option key={c.dni} value={c.dni}>
+                {c.nombre} ({c.dni})
+              </option>
+            ))}
+          </select>
         </div>
       </fieldset>
 
@@ -85,26 +71,20 @@ export default function FormularioConduce({
 
         <div>
           <label htmlFor="vehiculo.matricula">Matrícula *</label>
-          <input
+          <select
             id="vehiculo.matricula"
             name="vehiculo.matricula"
-            value={conduce.vehiculo.matricula}
+            value={conduce.vehiculo?.matricula || ""}
             onChange={handleChange}
             required
-          />
-          {errores["vehiculo.matricula"] && <p className="error">{errores["vehiculo.matricula"]}</p>}
-        </div>
-
-        <div>
-          <label htmlFor="vehiculo.modelo">Modelo *</label>
-          <input
-            id="vehiculo.modelo"
-            name="vehiculo.modelo"
-            value={conduce.vehiculo.modelo}
-            onChange={handleChange}
-            required
-          />
-          {errores["vehiculo.modelo"] && <p className="error">{errores["vehiculo.modelo"]}</p>}
+          >
+            <option value="">-- Selecciona un vehículo --</option>
+            {vehiculos.map((v) => (
+              <option key={v.matricula} value={v.matricula}>
+                {v.modelo} ({v.matricula})
+              </option>
+            ))}
+          </select>
         </div>
       </fieldset>
 

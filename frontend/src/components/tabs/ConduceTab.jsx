@@ -5,6 +5,9 @@ import BotonesCRUD from "../comunes/BotonesCRUD";
 
 import useConduces from "../../hooks/useConduces";
 import useCRUD from "../../hooks/useCRUD";
+import useConductores from "../../hooks/useConductores";
+import useVehiculos from "../../hooks/useVehiculos";
+
 import { MENSAJES } from "../../utils/mensajes";
 import "../comunes/tablaBase.css";
 
@@ -26,24 +29,23 @@ const CONDUCE_INICIAL = {
   fecha: "",
 };
 
-export default function ConducesTab() {
+export default function ConduceTab() {
+  const { conductores } = useConductores();
+  const { vehiculos } = useVehiculos();
+
   const { conduces, setConduces, isLoading } = useConduces();
-  const [selectedId, setSelectedId] = useState(null);
   const [muestraFormulario, setMuestraFormulario] = useState(false);
   const [modoFormulario, setModoFormulario] = useState("crear");
   const [conduce, setConduce] = useState(CONDUCE_INICIAL);
 
-  const { submitItem, deleteItem, submitting, successMessage, error } = useCRUD({
+  const { submitItem, submitting, successMessage, error } = useCRUD({
     items: conduces,
     setItems: setConduces,
-    setSelectedId: setSelectedId,
     apiUrl: "http://localhost:8080/api/conduces",
     idField: "conductor.dni", // o el campo que uses como identificador
     transformBeforeSave: (c) => c,
     mensajes: {
       exitoCreacion: MENSAJES.exitoCreacionConduce,
-      exitoActualizacion: MENSAJES.exitoActualizacionConduce,
-      exitoEliminacion: MENSAJES.exitoEliminacionConduce,
     },
   });
 
@@ -52,37 +54,27 @@ export default function ConducesTab() {
     setConduce(CONDUCE_INICIAL);
     setMuestraFormulario(true);
   };
-
-  const handleEdit = () => {
-    if (!selectedId) return alert("Selecciona una asignación para editar");
-    const seleccionado = conduces.find((c) => c.conductor.dni === selectedId);
-    if (!seleccionado) return;
-    setModoFormulario("editar");
-    setConduce({ ...seleccionado });
-    setMuestraFormulario(true);
-  };
-
-  const handleDelete = () => {
-    if (!selectedId) return alert("Selecciona una asignación para eliminar");
-    const seleccionado = conduces.find((c) => c.conductor.dni === selectedId);
-    const mensaje = MENSAJES.confirmEliminarConduce(seleccionado?.conductor?.nombre);
-    deleteItem(selectedId, mensaje);
-  };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setConduce((prev) => ({
-      ...prev,
-      [name.includes("conductor.") ? "conductor" : name.includes("vehiculo.") ? "vehiculo" : name]: {
-        ...prev[name.includes("conductor.") ? "conductor" : name.includes("vehiculo.") ? "vehiculo" : name],
-        [name.split(".")[1]]: value,
-      },
-    }));
+
+    // Campos anidados como conductor.dni o vehiculo.matricula
+    if (name.includes(".")) {
+      const [obj, prop] = name.split(".");
+      setConduce((prev) => ({
+        ...prev,
+        [obj]: {
+          ...prev[obj],
+          [prop]: value,
+        },
+      }));
+    } else {
+      setConduce((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    submitItem(conduce, modoFormulario, () => {
+    submitItem(conduce, "crear", () => {
       setMuestraFormulario(false);
     });
   };
@@ -95,7 +87,9 @@ export default function ConducesTab() {
   if (isLoading) {
     return (
       <div className="tabla-container">
-        <p className="mensaje-carga">{MENSAJES.cargaConduces || "Cargando asignaciones..."}</p>
+        <p className="mensaje-carga">
+          {MENSAJES.cargaConduces || "Cargando asignaciones..."}
+        </p>
       </div>
     );
   }
@@ -105,34 +99,26 @@ export default function ConducesTab() {
       <h2 className="tabla-title">Asignaciones de Conducción</h2>
 
       {error && <div className="mensaje-error">⚠️ {error}</div>}
-      {successMessage && <div className="mensaje-exito">✓ {successMessage}</div>}
+      {successMessage && (
+        <div className="mensaje-exito">✓ {successMessage}</div>
+      )}
 
-      <BotonesCRUD
-        onCreate={handleCreate}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        selectedDni={selectedId}
-        submitting={submitting}
-      />
+      <BotonesCRUD onCreate={handleCreate} submitting={submitting} />
 
       {muestraFormulario && (
         <FormularioConduce
           conduce={conduce}
           modoFormulario={modoFormulario}
           submitting={submitting}
+          conductores={conductores}
+          vehiculos={vehiculos}
           handleChange={handleChange}
           handleSubmit={handleSubmit}
           handleCancel={handleCancel}
         />
       )}
 
-      <VistaConduces
-        conduces={conduces}
-        selectedId={selectedId}
-        setSelectedId={setSelectedId}
-      />
+      <VistaConduces conduces={conduces} />
     </div>
   );
 }
-
-

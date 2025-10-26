@@ -13,12 +13,18 @@ export default function BotonesCRUD({
       <button onClick={onCreate} disabled={submitting}>
         ➕ Crear
       </button>
-      <button onClick={onEdit} disabled={!selectedDni || submitting}>
-        ✏️ Editar
-      </button>
-      <button onClick={onDelete} disabled={!selectedDni || submitting}>
-        🗑️ Eliminar
-      </button>
+
+      {onEdit && (
+        <button onClick={onEdit} disabled={!selectedDni || submitting}>
+          ✏️ Editar
+        </button>
+      )}
+
+      {onDelete && (
+        <button onClick={onDelete} disabled={!selectedDni || submitting}>
+          🗑️ Eliminar
+        </button>
+      )}
     </div>
   );
 }
